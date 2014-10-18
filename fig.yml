@@ -1,0 +1,15 @@
+carbon:
+  image: smo921/carbon
+  volumes:
+    - ./conf:/opt/graphite/conf
+    - ./data:/opt/graphite-storage
+  ports:
+    - '2003:2003'
+statsd:
+  image: antonlindstrom/statsd
+  links:
+    - carbon:carbon
+  environment:
+    GRAPHITE_HOST: carbon
+  ports:
+    - '8125:8125'
