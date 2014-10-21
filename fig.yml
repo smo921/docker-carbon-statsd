@@ -1,7 +1,7 @@
 carbon:
   image: smo921/carbon
   volumes:
-    - ./conf:/opt/graphite/conf
+    - ./conf/carbon:/opt/graphite/conf
     - ./data:/opt/graphite-storage
   ports:
     - '2003:2003'
@@ -13,3 +13,30 @@ statsd:
     GRAPHITE_HOST: carbon
   ports:
     - '8125:8125'
+django:
+  image: smo921/graphite-web
+  volumes:
+    - ./conf/graphite-django:/my_conf
+    - ./bin/graphite-django:/django_bin
+  volumes_from:
+    - carbon
+  ports:
+    - '3031:3031'
+  command: /django_bin/run.sh
+nginx:
+  image: smo921/nginx
+  volumes:
+    - ./conf/nginx:/etc/nginx/conf.d
+  links:
+    - django:graphite-web
+  ports:
+    - '8080:8080'
+logstash:
+  image: smo921/logstash:solo
+  volumes:
+    - ./conf/logstash/templates:/logstash-templates
+  volumes_from:
+    - carbon
+    - statsd
+    - django
+    - nginx
